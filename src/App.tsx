@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Room1_Hall from "./components/Room1_Hall";
 import Room2_Library from "./components/Room2_Library";
 import Room3_Hash from "./components/Room3_Hash";
@@ -66,6 +66,8 @@ export default function App() {
     syncGameState(sessionId);
   }, [sessionId]);
 
+  const initializingRef = useRef(false);
+
   // Sync game status from Express backend
   const syncGameState = async (targetSid: string) => {
     if (!targetSid) return;
@@ -73,6 +75,8 @@ export default function App() {
     // Check if we have the session key. If not, register session first
     const hasCryptoKey = localStorage.getItem("session_crypto_key");
     if (!hasCryptoKey) {
+      if (initializingRef.current) return;
+      initializingRef.current = true;
       try {
         const res = await fetch("/api/start", {
           method: "POST",
@@ -90,6 +94,8 @@ export default function App() {
         }
       } catch (e) {
         console.error("Failed to initialize session key", e);
+      } finally {
+        initializingRef.current = false;
       }
       return;
     }
@@ -112,12 +118,6 @@ export default function App() {
       console.error("Failed to sync secure game state", e);
     }
   };
-
-  useEffect(() => {
-    if (sessionId) {
-      syncGameState(sessionId);
-    }
-  }, [sessionId]);
 
   const triggerAlert = (message: string, isSuccess = false) => {
     setAlertText(message);

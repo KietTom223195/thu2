@@ -214,7 +214,13 @@ function verifySecuritySignature(req: express.Request, res: express.Response, ne
   const calculatedSignature = hmac.digest("hex");
 
   if (calculatedSignature !== signature) {
-    writeSecurityLog("INTEGRITY_CHECK", "Data tampering detected! Signature mismatch.", "FAILED", sessionId);
+    console.log("=== SIGNATURE MISMATCH DEBUG ===");
+    console.log("Client Signature:", signature);
+    console.log("Calculated Signature:", calculatedSignature);
+    console.log("Server Payload:", JSON.stringify(payload));
+    console.log("Server req.body:", JSON.stringify(req.body));
+    console.log("================================");
+    writeSecurityLog("INTEGRITY_CHECK", `Signature mismatch. Server payload: ${payload}`, "FAILED", sessionId);
     return res.status(400).json({
       status: "error",
       message: "🔐 Cảnh báo: Dữ liệu truyền tải đã bị thay đổi (Tampered) hoặc giả mạo chữ ký trên đường truyền!"
