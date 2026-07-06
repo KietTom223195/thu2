@@ -1,6 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Plus Jakarta Sans', Georgia, serif;
+}
+
 .parchment-bg {
   background-color: #e6dfc3;
   background-image: radial-gradient(circle, transparent, rgba(50, 40, 20, 0.15) 100%);
@@ -187,6 +192,21 @@ input, select, textarea, label {
 /* Let the specialized button styles stay proportionate */
 .pixel-btn, button {
   font-size: 14px !important;
+}
+
+@media (max-w: 768px) {
+  input, select, textarea, label, button, .pixel-btn {
+    font-size: 16px !important;
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .map-viewport {
+    height: 52vh !important;
+    width: calc(52vh * 1.6) !important;
+    max-width: 95vw !important;
+    margin: 0 auto !important;
+  }
 }
 
 

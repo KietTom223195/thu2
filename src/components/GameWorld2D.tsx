@@ -330,6 +330,11 @@ export default function GameWorld2D({
   const [pendingOpen, setPendingOpen] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
   const [dusts, setDusts] = useState<{ id: number; x: number; y: number }[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 768);
+  }, []);
 
   // Cleanup old dust particles after 400ms
   useEffect(() => {
@@ -581,17 +586,7 @@ export default function GameWorld2D({
     return () => clearTimeout(timer);
   }, [walkingPath, px, py, dir, clickedTarget, handleInspect, isSearching, autoTransition, setAutoTransition, setDusts]);
 
-  // Map mouse click to move handler
-  const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (dialogOpen || isSearching) return; // Prevent clicking while dialog or search is active
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
-
-    const tx = Math.floor((clickX / rect.width) * COLS);
-    const ty = Math.floor((clickY / rect.height) * ROWS);
-
+  const moveToTile = useCallback((tx: number, ty: number) => {
     setClickedTarget({ x: tx, y: ty });
 
     const path = findPath(
@@ -611,57 +606,100 @@ export default function GameWorld2D({
       triggerAlert("❌ Vị trí này bị chặn hoặc không thể đi tới được!", false);
       setClickedTarget(null);
     }
-  };
+  }, [px, py, config, blockedByFurniture, doorOpen, currentLevel, activeRoom, triggerAlert]);
 
-  // Keyboard handler
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+  // Map mouse click to move handler
+  const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (dialogOpen || isSearching) return;
 
-    // Interrupt mouse walking if keyboard keys are pressed
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    const tx = Math.floor((clickX / rect.width) * COLS);
+    const ty = Math.floor((clickY / rect.height) * ROWS);
+
+    moveToTile(tx, ty);
+  };
+
+  // Map touch start to move handler (instant feedback on mobile)
+  const handleMapTouch = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (dialogOpen || isSearching) return;
+    e.preventDefault(); // Stop mouse emulation click
+
+    const touch = e.touches[0];
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = touch.clientX - rect.left;
+    const clickY = touch.clientY - rect.top;
+
+    const tx = Math.floor((clickX / rect.width) * COLS);
+    const ty = Math.floor((clickY / rect.height) * ROWS);
+
+    moveToTile(tx, ty);
+  };
+
+  const handleDirectionalInput = useCallback((d: Direction) => {
+    if (dialogOpen || isSearching) return;
+
     if (walkingPath.length > 0) {
       setWalkingPath([]);
       setClickedTarget(null);
     }
 
-    type MoveEntry = { dx: number; dy: number; d: Direction };
+    const MOVES: Record<Direction, { dx: number; dy: number }> = {
+      up:    { dx: 0,  dy: -1 },
+      down:  { dx: 0,  dy: 1  },
+      left:  { dx: -1, dy: 0  },
+      right: { dx: 1,  dy: 0  },
+    };
+
+    const mv = MOVES[d];
+    setDir(d);
+    setWalkFrame(f => (f % 2) + 1);
+    setTimeout(() => setWalkFrame(0), 280);
+
+    const tx = px + mv.dx;
+    const ty = py + mv.dy;
+    const tile = config.map[ty]?.[tx];
+
+    if (tile === undefined || tile === 1) { sound.playError(); return; }
+
+    if (tile === 3) {
+      const open = doorOpen || currentLevel > activeRoom;
+      if (open) {
+        sound.playDoorOpen();
+        onGoToRoom(activeRoom + 1);
+      } else {
+        triggerAlert("🔒 Cửa đang khóa! Hãy giải mật mã để mở.", false);
+      }
+      return;
+    }
+
+    if (blockedByFurniture(tx, ty)) { sound.playError(); return; }
+
+    setPx(tx); setPy(ty);
+  }, [px, py, config, dialogOpen, doorOpen, activeRoom, currentLevel, onGoToRoom, triggerAlert, blockedByFurniture, walkingPath, isSearching]);
+
+  // Keyboard handler
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (dialogOpen || isSearching) return;
+
+    type MoveEntry = { d: Direction };
     const MOVES: Record<string, MoveEntry> = {
-      ArrowUp:    { dx:0,  dy:-1, d:"up"    },
-      ArrowDown:  { dx:0,  dy:1,  d:"down"  },
-      ArrowLeft:  { dx:-1, dy:0,  d:"left"  },
-      ArrowRight: { dx:1,  dy:0,  d:"right" },
-      w:{ dx:0,  dy:-1, d:"up"    }, W:{ dx:0,  dy:-1, d:"up"    },
-      s:{ dx:0,  dy:1,  d:"down"  }, S:{ dx:0,  dy:1,  d:"down"  },
-      a:{ dx:-1, dy:0,  d:"left"  }, A:{ dx:-1, dy:0,  d:"left"  },
-      d:{ dx:1,  dy:0,  d:"right" }, D:{ dx:1,  dy:0,  d:"right" },
+      ArrowUp:    { d:"up"    },
+      ArrowDown:  { d:"down"  },
+      ArrowLeft:  { d:"left"  },
+      ArrowRight: { d:"right" },
+      w:{ d:"up"    }, W:{ d:"up"    },
+      s:{ d:"down"  }, S:{ d:"down"  },
+      a:{ d:"left"  }, A:{ d:"left"  },
+      d:{ d:"right" }, D:{ d:"right" },
     };
 
     const mv = MOVES[e.key];
     if (mv) {
       e.preventDefault();
-      setDir(mv.d);
-      setWalkFrame(f => (f % 2) + 1); // alternate 1 and 2 while walking
-      setTimeout(() => setWalkFrame(0), 280);
-
-      const tx = px + mv.dx;
-      const ty = py + mv.dy;
-      const tile = config.map[ty]?.[tx];
-
-      if (tile === undefined || tile === 1) { sound.playError(); return; }
-
-      if (tile === 3) {
-        const open = doorOpen || currentLevel > activeRoom;
-        if (open) {
-          sound.playDoorOpen();
-          onGoToRoom(activeRoom + 1);
-        } else {
-          triggerAlert("🔒 Cửa đang khóa! Hãy giải mật mã để mở.", false);
-        }
-        return;
-      }
-
-      if (blockedByFurniture(tx, ty)) { sound.playError(); return; }
-
-      setPx(tx); setPy(ty);
+      handleDirectionalInput(mv.d);
     }
 
     if ((e.key === " " || e.key === "Enter") && !dialogOpen) {
@@ -673,7 +711,7 @@ export default function GameWorld2D({
       }
     }
 
-  }, [px, py, config, dialogOpen, doorOpen, activeRoom, currentLevel, onGoToRoom, triggerAlert, blockedByFurniture, walkingPath, isSearching, handleInspect]);
+  }, [config, dialogOpen, px, py, isSearching, handleDirectionalInput, handleInspect]);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -721,8 +759,8 @@ export default function GameWorld2D({
       }
     };
     return (
-      <div className="fixed inset-0 z-55 bg-black/85 flex items-center justify-center p-3 font-pixel">
-        <div className="relative w-[960px] h-[580px] max-w-[95vw] max-h-[90vh] overflow-hidden bg-stone-900 border-4 border-[#3a2818] shadow-2xl rounded flex flex-col">
+      <div className="absolute inset-0 z-55 bg-black/85 flex items-center justify-center p-3 font-pixel">
+        <div className="relative w-[960px] md:h-[580px] h-[85vh] max-w-[95vw] max-h-[90vh] overflow-y-auto md:overflow-hidden bg-stone-900 border-4 border-[#3a2818] shadow-2xl rounded flex flex-col">
           <button
             onClick={() => setDialogOpen(false)}
             className="absolute top-2 right-2 text-stone-400 hover:text-red-500 font-bold border border-stone-600 px-1.5 py-0.5 text-[8px] bg-black/40 z-50 cursor-pointer"
@@ -758,11 +796,17 @@ export default function GameWorld2D({
       style={{ backgroundColor: "#110d07" }}
     >
       {/* ── Top HUD bar ─────────────────────────────────────── */}
-      <div className="w-full max-w-[1160px] bg-[#160f0b] border-2 border-[#3a2818] px-3 py-1.5 flex justify-between items-center text-[11px] text-[#ebdcb9] shrink-0">
+      <div className="w-full max-w-[1160px] bg-[#160f0b] border-2 border-[#3a2818] px-3 py-1.5 flex justify-between items-center text-[10px] sm:text-[11px] text-[#ebdcb9] shrink-0">
         <div className="flex gap-4 items-center">
-          <span>🖱️ <strong className="text-amber-400">Click Chuột</strong> Di chuyển & Tìm kiếm</span>
-          <span>🎮 <strong className="text-amber-400">WASD / ↑↓←→</strong> Di chuyển phím</span>
-          <span>⚡ <strong className="text-amber-400">SPACE</strong> Tương tác</span>
+          {isMobile ? (
+            <span>👉 <strong className="text-amber-400">Chạm bản đồ</strong> để di chuyển & tìm kiếm</span>
+          ) : (
+            <>
+              <span>🖱️ <strong className="text-amber-400">Click Chuột</strong> Di chuyển & Tìm kiếm</span>
+              <span className="hidden md:inline">🎮 <strong className="text-amber-400">WASD / ↑↓←→</strong> Di chuyển phím</span>
+              <span className="hidden sm:inline">⚡ <strong className="text-amber-400">SPACE</strong> Tương tác</span>
+            </>
+          )}
         </div>
         <div>
           Cửa:{" "}
@@ -775,7 +819,8 @@ export default function GameWorld2D({
       {/* ── MAP VIEWPORT ─────────────────────────────────────── */}
       <div
         onClick={handleMapClick}
-        className="w-full max-w-[1160px] border-4 border-[#3a2818] shadow-[0_0_40px_rgba(0,0,0,0.9)] rounded overflow-hidden relative cursor-crosshair"
+        onTouchStart={handleMapTouch}
+        className="w-[960px] border-4 border-[#3a2818] shadow-[0_0_40px_rgba(0,0,0,0.9)] rounded overflow-hidden relative cursor-crosshair shrink-0"
         style={{
           aspectRatio: `${COLS} / ${ROWS}`,
           backgroundImage:  "url(/assets/floors/wood_floor.png)",
@@ -1228,6 +1273,7 @@ export default function GameWorld2D({
           🎯 GẦN {config.puzzleName.toUpperCase()} — NHẤN SPACE ĐỂ GIẢI MÃ
         </div>
       )}
+
 
       {renderDialog()}
     </div>

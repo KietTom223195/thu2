@@ -122,6 +122,31 @@ class AudioSynthesizer {
     }
   }
 
+  playDefeat() {
+    try {
+      this.init();
+      if (!this.ctx || this.isMuted) return;
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(120, now);
+      osc.frequency.linearRampToValueAtTime(30, now + 1.2);
+
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start();
+      osc.stop(now + 1.5);
+    } catch (e) {
+      // ignore
+    }
+  }
+
   playMetalClash() {
     try {
       this.init();

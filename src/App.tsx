@@ -61,6 +61,23 @@ export default function App() {
   const [isSuccessAlert, setIsSuccessAlert] = useState(false);
   const [shouldShakeAlert, setShouldShakeAlert] = useState(false);
 
+  const [isEarlyFinished, setIsEarlyFinished] = useState(false);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const targetW = 1020;
+      const targetH = 750;
+      const winW = window.innerWidth - 12;
+      const winH = window.innerHeight - 12;
+      const s = Math.min(winW / targetW, winH / targetH, 1);
+      setScale(s);
+    };
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   // Initialize secure session ID to avoid third-party cookie blocks in iframe sandbox
   useEffect(() => {
     syncGameState(sessionId);
@@ -144,6 +161,7 @@ export default function App() {
       setActiveRoom(6);
       setScore(finalMetrics.totalScore);
       setElapsedTime(finalMetrics.elapsedTime);
+      setIsEarlyFinished(false);
       setCompleted(true);
     } else {
       setCurrentLevel(nextLevel);
@@ -172,6 +190,35 @@ export default function App() {
       } catch (err) {
         console.warn("Failed to sync score after hint usage:", err);
       }
+    }
+  };
+
+  const [forceConfirmVisible, setForceConfirmVisible] = useState(false);
+
+  const handleForceFinish = async () => {
+    setForceConfirmVisible(false);
+    if (!sessionId) return;
+    try {
+      const res = await fetch("/api/state", {
+        headers: {
+          "x-session-id": sessionId,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setScore(data.score);
+        setElapsedTime(data.elapsed_time);
+        setIsEarlyFinished(true);
+        setCompleted(true);
+        setCurrentLevel(6);
+        setActiveRoom(6);
+      }
+    } catch (e) {
+      console.error("Failed to force finish game:", e);
+      setIsEarlyFinished(true);
+      setCompleted(true);
+      setCurrentLevel(6);
+      setActiveRoom(6);
     }
   };
 
@@ -243,6 +290,7 @@ export default function App() {
           totalScore={score}
           elapsedTime={elapsedTime}
           onRestart={handleResetGame}
+          isEarly={isEarlyFinished}
         />
       );
     }
@@ -304,7 +352,16 @@ export default function App() {
       {/* Dark vignette overlay for the outer screen room */}
       <div className="absolute inset-0 bg-black/60 pointer-events-none z-0" />
 
-      <div className={`w-full h-full max-w-[1280px] max-h-[840px] border-[12px] ${theme.cabinetBorderColor} shadow-[0_0_80px_rgba(0,0,0,0.95)] flex flex-col bg-[#140e0a] relative overflow-hidden rounded-lg z-10`}>
+      <div 
+        className={`absolute border-4 sm:border-[12px] ${theme.cabinetBorderColor} shadow-[0_0_80px_rgba(0,0,0,0.95)] flex flex-col bg-[#140e0a] overflow-hidden rounded-lg z-10`}
+        style={{
+          transform: `scale(${scale})`,
+          transformOrigin: "center center",
+          width: "1000px",
+          height: "700px",
+          flexShrink: 0,
+        }}
+      >
         
         {/* Retro Header Board */}
         <header className={`h-[54px] ${theme.headerBgColor} border-b-[4px] ${theme.headerBorderColor} flex items-center justify-between px-4 text-[#ebdcb9] shrink-0 select-none z-30 font-sans`}>
@@ -367,6 +424,15 @@ export default function App() {
             <span className="bg-black/60 px-2 py-1 border border-stone-800 rounded">
               CẤP ĐỘ: <strong className="text-red-500 font-bold font-mono">{Math.min(5, currentLevel)}/5</strong>
             </span>
+            {currentLevel > 1 && !completed && (
+              <button
+                onClick={() => setForceConfirmVisible(true)}
+                className="bg-amber-900 border-2 border-black text-white rounded font-bold px-2.5 py-1 uppercase tracking-wider cursor-pointer duration-150 hover:bg-amber-700 focus:outline-none shrink-0"
+                title="Dừng chơi sớm và nộp điểm hiện tại lên bảng vàng"
+              >
+                Tính điểm 🏆
+              </button>
+            )}
             <button
               id="btn_header_reset"
               onClick={handleResetGame}
@@ -447,6 +513,7 @@ export default function App() {
                         setActiveRoom(1);
                         setScore(0);
                         setCompleted(false);
+                        setIsEarlyFinished(false);
                         setElapsedTime(0);
                         setResetCounter((c) => c + 1);
                         sound.playDoorOpen();
@@ -465,6 +532,40 @@ export default function App() {
                   className="flex-1 pixel-btn text-[9px] py-2 uppercase cursor-pointer"
                 >
                   Hủy bỏ
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Custom Force Finish Game Confirmation Modal */}
+        {forceConfirmVisible && (
+          <div className="absolute inset-0 bg-black/90 z-55 flex items-center justify-center p-4 animate-fade-in font-sans">
+            <div className="bg-[#1c120c] border-4 border-amber-900 rounded p-6 max-w-[440px] text-center shadow-2xl relative select-none">
+              <div className="absolute top-2 right-3 text-amber-800 text-[8px] font-mono select-none pointer-events-none opacity-20">
+                FORCE_QUIT
+              </div>
+              
+              <h3 className="text-[#ebdcb9] text-xs font-bold mb-3 uppercase tracking-wider">
+                Dừng Chơi & Tính Điểm?
+              </h3>
+              
+              <p className="text-stone-300 text-[9px] leading-relaxed mb-6">
+                Bạn có chắc chắn muốn dừng hành trình tại đây? Hệ thống sẽ kết xuất điểm số hiện tại của bạn là <strong className="text-amber-400 font-mono">{score} điểm</strong> và nộp bảng vàng kỷ lục.
+              </p>
+
+              <div className="flex gap-4">
+                <button
+                  onClick={handleForceFinish}
+                  className="flex-1 bg-amber-800 hover:bg-amber-700 text-white rounded font-bold py-2 text-[10px] uppercase border border-black cursor-pointer"
+                >
+                  Nộp điểm 🏆
+                </button>
+                <button
+                  onClick={() => setForceConfirmVisible(false)}
+                  className="flex-1 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded font-bold py-2 text-[10px] uppercase border border-black cursor-pointer"
+                >
+                  Chơi tiếp 🎮
                 </button>
               </div>
             </div>

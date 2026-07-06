@@ -132,7 +132,7 @@ export default function Room1_Hall({ onLevelCleared, triggerAlert, sessionId }: 
   };
 
   return (
-    <div className="w-full h-full relative overflow-hidden bg-[#120f0c] text-stone-200 select-none flex flex-row items-stretch">
+    <div className="w-full h-full relative overflow-y-auto md:overflow-hidden bg-[#120f0c] text-stone-200 select-none flex flex-col md:flex-row items-stretch">
       {/* Root Ambient Dark Vignette Overlay */}
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_40%,rgba(0,0,0,0.9))] z-20" />
       <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.15)_50%)] bg-[length:100%_4px] opacity-20 z-20" />
@@ -141,7 +141,7 @@ export default function Room1_Hall({ onLevelCleared, triggerAlert, sessionId }: 
       {/* SECTION 1: LEFT WALL WITH THE DAMASK WALLPAPER, BLOOD "3", & "KHOOR" WORK */}
       {/* ========================================================================= */}
       <div 
-        className="w-[33%] bg-[#241a13] border-r-4 border-stone-950 relative flex flex-col justify-between p-4 z-10 overflow-hidden shadow-[2px_0_15px_rgba(0,0,0,0.9)]"
+        className="w-full md:w-[33%] min-h-[350px] md:min-h-0 bg-[#241a13] border-b-4 md:border-b-0 md:border-r-4 border-stone-950 relative flex flex-col justify-between p-4 z-10 overflow-hidden shadow-[2px_0_15px_rgba(0,0,0,0.9)]"
         style={{
           backgroundImage: `
             linear-gradient(90deg, rgba(30,22,16,0.3) 0%, rgba(12,8,6,0.5) 100%),
@@ -226,7 +226,7 @@ export default function Room1_Hall({ onLevelCleared, triggerAlert, sessionId }: 
       {/* ========================================================================= */}
       {/* SECTION 2: DEEP HALLWAY CORRIDOR VIEWPORT WITH DOORS AND PERSPECTIVE */}
       {/* ========================================================================= */}
-      <div className="flex-grow bg-[#161210] relative flex items-end justify-center">
+      <div className="flex-grow w-full md:w-[67%] min-h-[480px] md:min-h-0 bg-[#161210] relative flex items-end justify-center">
         {/* Background corridor walls perspective */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           {/* Red carpet runner lines */}

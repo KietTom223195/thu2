@@ -414,9 +414,9 @@ export default function Room2_Library({ onLevelCleared, triggerAlert, sessionId,
             backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><line x1='0' y1='50' x2='100' y2='50' stroke='black' stroke-width='4'/><line x1='50' y1='0' x2='50' y2='100' stroke='black' stroke-width='2'/></svg>")`
           }} />
 
-          <div className="w-full h-full flex gap-4 pt-10 pb-4 relative items-stretch">
+          <div className="w-full h-full flex flex-col md:flex-row gap-4 pt-10 pb-4 relative items-stretch overflow-y-auto md:overflow-hidden">
             {/* LEFT BOOK: Open Vigenere grid textbook */}
-            <div className="flex-1 bg-[#ede4c7] border-[6px] border-[#36261b] rounded shadow-2xl p-4 flex flex-col text-[#2e2b25] relative">
+            <div className="w-full md:flex-1 bg-[#ede4c7] border-[6px] border-[#36261b] rounded shadow-2xl p-4 flex flex-col text-[#2e2b25] relative shrink-0 min-h-[380px] md:min-h-0">
               {/* Book central seam overlay */}
               <div className="absolute right-0 top-0 bottom-0 w-[4px] bg-[#1a110a] opacity-30 shadow-[0_0_8px_black]" />
               
@@ -520,7 +520,7 @@ export default function Room2_Library({ onLevelCleared, triggerAlert, sessionId,
             </div>
 
             {/* CENTER: Torn Fragment Jigsaw puzzle */}
-            <div className="w-[45%] flex flex-col items-center justify-between p-2 relative bg-[#2a1e15] border-2 border-stone-950 rounded-lg shadow-inner">
+            <div className="w-full md:w-[45%] flex flex-col items-center justify-between p-2 relative bg-[#2a1e15] border-2 border-stone-950 rounded-lg shadow-inner shrink-0 min-h-[260px] md:min-h-0">
               <span className="text-[9px] font-mono tracking-widest text-stone-400 block pb-1 border-b border-stone-800 w-full text-center uppercase">
                 {puzzleAssembled ? "BẢN THƯ KHẢI HOÀN" : "CÁC MẢNH GHÉP TẢ TƠI (CLICK ĐỂ SWAP)"}
               </span>
@@ -577,8 +577,8 @@ export default function Room2_Library({ onLevelCleared, triggerAlert, sessionId,
             </div>
 
             {/* RIGHT BAR: Mortar Apparatus and Mini-bar menu buttons as in Rusty Lake screenshot */}
-            <div className="w-[52px] flex flex-col justify-between items-center bg-stone-950/60 p-1.5 rounded-md border border-stone-850 select-none">
-              <div className="flex flex-col gap-2 w-full">
+            <div className="w-full md:w-[52px] flex flex-row md:flex-col justify-around md:justify-between items-center bg-stone-950/60 p-1.5 rounded-md border border-stone-850 select-none shrink-0 min-h-[48px] md:min-h-0">
+              <div className="flex flex-row md:flex-col gap-2 w-auto md:w-full justify-center">
                 {/* Help button "?" */}
                 <button
                   onClick={() => triggerAlert("Gợi ý mật khải: Tìm từ khóa từ các mảnh tranh rách. Chữ cái ghép lại thành 'DEATH'. Dùng nó để mở Rương gỗ!")}
@@ -603,7 +603,7 @@ export default function Room2_Library({ onLevelCleared, triggerAlert, sessionId,
               </div>
 
               {/* Mortar & Pestle in mortar vector bottom right corner */}
-              <div className="w-[38px] h-[38px] bg-[#4a4947] border border-stone-900 rounded-b-xl flex flex-col justify-start items-center shadow-inner pt-1 select-none cursor-pointer"
+              <div className="hidden md:flex w-[38px] h-[38px] bg-[#4a4947] border border-stone-900 rounded-b-xl flex-col justify-start items-center shadow-inner pt-1 select-none cursor-pointer"
                 onClick={() => triggerAlert("Một cái cối đá cổ rạn nứt. Trong lòng cối trống không, bốc mùi hỏa tiều tùng xỉ than...")}>
                 <div className="w-1.5 h-6 bg-stone-700 rounded-t border-r border-[#111] flex shrink-0 -translate-y-2 rotate-[-15deg]" />
               </div>

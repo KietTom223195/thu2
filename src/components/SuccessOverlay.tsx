@@ -5,23 +5,29 @@ interface SuccessProps {
   totalScore: number;
   elapsedTime: number;
   onRestart: () => void;
+  isEarly?: boolean;
 }
 
-type EndStep = "fade" | "chest" | "opening" | "showResults";
+type EndStep = "fade" | "chest" | "opening" | "showResults" | "defeat";
 
-export default function SuccessOverlay({ totalScore, elapsedTime, onRestart }: SuccessProps) {
+export default function SuccessOverlay({ totalScore, elapsedTime, onRestart, isEarly = false }: SuccessProps) {
   const [step, setStep] = useState<EndStep>("fade");
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [playerName, setPlayerName] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // Step 1: Smooth transition to fade and chest presence
+  // Step 1: Smooth transition to fade and chest/defeat presence
   useEffect(() => {
     const t = setTimeout(() => {
-      setStep("chest");
+      if (isEarly) {
+        setStep("defeat");
+        sound.playDefeat();
+      } else {
+        setStep("chest");
+      }
     }, 1200); // 1.2s dark screen silence
     return () => clearTimeout(t);
-  }, []);
+  }, [isEarly]);
 
   const handleChestClick = () => {
     if (step !== "chest") return;
@@ -93,7 +99,7 @@ export default function SuccessOverlay({ totalScore, elapsedTime, onRestart }: S
   `;
 
   // Render ending steps
-  if (step === "fade" || step === "chest" || step === "opening") {
+  if (step === "fade" || step === "chest" || step === "opening" || step === "defeat") {
     return (
       <div 
         style={{
@@ -109,6 +115,72 @@ export default function SuccessOverlay({ totalScore, elapsedTime, onRestart }: S
         }}
       >
         <style>{chestStyles}</style>
+
+        {/* Spooky Defeat Screen */}
+        {step === "defeat" && (
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            animation: "fadeIn 1s ease-out forwards",
+          }}>
+            {/* Animated Skull/Tombstone SVG */}
+            <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#ff3333" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{
+              filter: "drop-shadow(0 0 15px #ff0000)",
+              animation: "pls 1.5s ease-in-out infinite",
+            }}>
+              <path d="M4 19v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2" />
+              <path d="M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+              <path d="M12 13v6" />
+              <path d="M9 16h6" />
+            </svg>
+            
+            <div style={{
+              color: "#ff3333",
+              fontFamily: "'Press Start 2P', monospace",
+              fontSize: "10px",
+              fontWeight: "bold",
+              textShadow: "0 0 12px rgba(255,0,0,0.8), 2px 2px 0 #000",
+              marginTop: "20px",
+              textAlign: "center",
+            }}>
+              💀 KIỆT SỨC & GỤC NGÃ 💀
+            </div>
+            
+            <div style={{
+              color: "#ebdcb9",
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              fontSize: "11px",
+              textAlign: "center",
+              maxWidth: "360px",
+              marginTop: "12px",
+              lineHeight: "1.5",
+              opacity: 0.8,
+            }}>
+              Tâm trí bạn tiêu biến, cơ thể gục ngã dưới sức ép của cỗ máy mật mã cổ đại...
+            </div>
+
+            <button
+              onClick={() => setStep("showResults")}
+              style={{
+                marginTop: "24px",
+                backgroundColor: "#611b15",
+                border: "3px solid #ff3333",
+                color: "#fff",
+                fontFamily: "'Press Start 2P', monospace",
+                fontSize: "8px",
+                fontWeight: "bold",
+                padding: "10px 20px",
+                cursor: "pointer",
+                boxShadow: "0 0 15px rgba(255,0,0,0.4)",
+              }}
+              className="active:scale-95 transition-transform"
+            >
+              TÍNH ĐIỂM & XEM BẢNG VÀNG 🏆
+            </button>
+          </div>
+        )}
 
         {/* Floating glowing treasure chest */}
         {(step === "chest" || step === "opening") && (
@@ -228,14 +300,34 @@ export default function SuccessOverlay({ totalScore, elapsedTime, onRestart }: S
     );
   }
 
+  const bgGradient = isEarly 
+    ? "from-[#42130f] via-[#140605] to-black"
+    : "from-[#1d451e] via-[#040d04] to-black";
+    
+  const cardBorder = isEarly
+    ? "border-[#611b15]"
+    : "border-[#1e3c20]";
+
+  const titleText = isEarly
+    ? "KIỆT SỨC GỤC NGÃ!"
+    : "THOÁT KHỎI PHÒNG GIAM!";
+
+  const titleColor = isEarly
+    ? "text-red-600 animate-pulse"
+    : "text-red-800 animate-pulse";
+
+  const descriptionText = isEarly
+    ? "Ảo ảnh tan rã, tâm trí bạn không còn đủ sức chống chọi sức ép của cỗ máy mật mã. Bạn gục ngã bên thềm phòng giam lạnh lẽo... Dù vậy, những nỗ lực bẻ khóa quả cảm của bạn vẫn được khắc ghi."
+    : "Gió lộng gầm rít bẻ cong dòng chảy không thời gian lỗ sụt nứt mở. Bạn rơi tự do xuyên qua luồng sáng xanh lục ngọc bích, bỏ lại phòng giam mật mã đáng sợ phía sau...";
+
   return (
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#1d451e] via-[#040d04] to-black z-50 flex items-center justify-center p-4 select-none overflow-y-auto">
-      <div className="bg-[#e6dfc3] border-[10px] border-[#1e3c20] p-6 text-[#2b2824] rounded-lg w-full max-w-[840px] shadow-2xl relative animate-fade-in font-serif">
-        <h1 className="font-['Creepster'] text-red-800 text-4xl md:text-5xl drop-shadow-[0_2px_4px_black] uppercase animate-pulse text-center">
-          THOÁT KHỎI PHÒNG GIAM!
+    <div className={`absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] ${bgGradient} z-50 flex items-center justify-center p-4 select-none overflow-y-auto`}>
+      <div className={`bg-[#e6dfc3] border-[10px] ${cardBorder} p-6 text-[#2b2824] rounded-lg w-full max-w-[840px] shadow-2xl relative animate-fade-in font-serif`}>
+        <h1 className={`font-['Creepster'] ${titleColor} text-4xl md:text-5xl drop-shadow-[0_2px_4px_black] uppercase text-center`}>
+          {titleText}
         </h1>
         <p className="text-stone-700 italic text-xs mt-2 text-center leading-relaxed font-serif max-w-[600px] mx-auto">
-          Gió lộng gầm rít bẻ cong dòng chảy không thời gian lỗ sụt nứt mở. Bạn rơi tự do xuyên qua luồng sáng xanh lục ngọc bích, bỏ lại phòng giam mật mã đáng sợ phía sau...
+          {descriptionText}
         </p>
         <hr className="border-t-2 border-green-800 my-4" />
 
@@ -249,7 +341,7 @@ export default function SuccessOverlay({ totalScore, elapsedTime, onRestart }: S
               <div className="bg-[#fbfcfa] border border-[#a2ac9c] p-4 rounded flex flex-col gap-3 text-stone-900 shadow-inner font-sans text-xs md:text-sm">
                 <p className="flex justify-between border-b pb-1 border-stone-200">
                   <span className="font-bold text-stone-600">Điểm mật lượng:</span>
-                  <span className="font-mono text-red-800 font-bold text-base">{totalScore} / 1000</span>
+                  <span className="font-mono text-red-800 font-bold text-base">{totalScore} / 1500</span>
                 </p>
                 <p className="flex justify-between border-b pb-1 border-stone-200">
                   <span className="font-bold text-stone-600">Thời gian bẻ khóa:</span>
@@ -312,8 +404,9 @@ export default function SuccessOverlay({ totalScore, elapsedTime, onRestart }: S
                 <div className="text-stone-500 text-[10px] text-center py-10">Đang tải bảng vàng...</div>
               ) : (
                 leaderboard.map((entry, idx) => {
-                  let badge = "🥇";
-                  if (idx === 1) badge = "🥈";
+                  let badge = "";
+                  if (idx === 0) badge = "🥇";
+                  else if (idx === 1) badge = "🥈";
                   else if (idx === 2) badge = "🥉";
                   else badge = `   ${idx + 1}. `;
 

@@ -605,7 +605,6 @@ interface LeaderboardEntry {
 
 function getLeaderboard(): LeaderboardEntry[] {
   const defaultData: LeaderboardEntry[] = [
-    { name: "Alan Turing", score: 1500, time: 200, date: new Date().toLocaleDateString() },
     { name: "Ada Lovelace", score: 1400, time: 250, date: new Date().toLocaleDateString() },
     { name: "Claude Shannon", score: 1200, time: 300, date: new Date().toLocaleDateString() },
     { name: "Satoshi", score: 1000, time: 350, date: new Date().toLocaleDateString() },
