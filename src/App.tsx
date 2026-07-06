@@ -69,6 +69,31 @@ export default function App() {
   // Sync game status from Express backend
   const syncGameState = async (targetSid: string) => {
     if (!targetSid) return;
+
+    // Check if we have the session key. If not, register session first
+    const hasCryptoKey = localStorage.getItem("session_crypto_key");
+    if (!hasCryptoKey) {
+      try {
+        const res = await fetch("/api/start", {
+          method: "POST",
+          headers: {
+            "x-session-id": targetSid,
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setCurrentLevel(data.level || 1);
+          setActiveRoom(data.level || 1);
+          setScore(data.score || 0);
+          setCompleted(false);
+          setElapsedTime(0);
+        }
+      } catch (e) {
+        console.error("Failed to initialize session key", e);
+      }
+      return;
+    }
+
     try {
       const res = await fetch("/api/state", {
         headers: {
