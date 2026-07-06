@@ -512,7 +512,7 @@ export default function RoomEditor({ onClose }: RoomEditorProps) {
         <div className="flex items-center gap-3">
           <div className="h-3 w-3 rounded-full bg-orange-500 animate-pulse" />
           <h1 className="text-xl font-bold tracking-wider text-orange-400 font-mono">
-            CRYPTO QUEST - TRÌNH THIẾT KẾ BẢN ĐỒ PHÒNG (LEVEL EDITOR)
+            HUYỀN THOẠI BẺ KHÓA - TRÌNH THIẾT KẾ BẢN ĐỒ PHÒNG (LEVEL EDITOR)
           </h1>
         </div>
         <button 

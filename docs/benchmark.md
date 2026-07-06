@@ -1,6 +1,6 @@
 # Performance Benchmark Report
 
-Báo cáo này trình bày kết quả đo lường hiệu năng thực thi (performance benchmark) của các thuật toán mật mã đã được áp dụng trong hệ thống game **Crypto Quest**.
+Báo cáo này trình bày kết quả đo lường hiệu năng thực thi (performance benchmark) của các thuật toán mật mã đã được áp dụng trong hệ thống game **Huyền Thoại Bẻ Khóa**.
 
 ---
 

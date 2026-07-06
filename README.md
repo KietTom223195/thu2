@@ -1,6 +1,6 @@
-# Crypto Quest - Secure RPG 2D Game
+# Huyền Thoại Bẻ Khóa - Secure RPG 2D Game
 
-Crypto Quest là một trò chơi nhập vai giải đố 2D giáo dục, nơi người chơi phải vượt qua các phòng giam mật mã cổ xưa bằng cách giải các câu đố thuật toán mật mã cổ điển và hiện đại. Hệ thống đã được nâng cấp bảo mật toàn diện để đáp ứng các yêu cầu kỹ thuật bắt buộc của bài tập lớn **FIT4012 Secure System Upgrade Challenge**.
+Huyền Thoại Bẻ Khóa là một trò chơi nhập vai giải đố 2D giáo dục, nơi người chơi phải vượt qua các phòng giam mật mã cổ xưa bằng cách giải các câu đố thuật toán mật mã cổ điển và hiện đại. Hệ thống đã được nâng cấp bảo mật toàn diện để đáp ứng các yêu cầu kỹ thuật bắt buộc của bài tập lớn **FIT4012 Secure System Upgrade Challenge**.
 
 ---
 

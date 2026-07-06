@@ -1,6 +1,6 @@
 # Cryptographic Protocol & System Architecture Design
 
-Tài liệu này mô tả chi tiết thiết kế kiến trúc hệ thống và giao thức bảo mật mật mã đã triển khai cho hệ thống game **Crypto Quest**.
+Tài liệu này mô tả chi tiết thiết kế kiến trúc hệ thống và giao thức bảo mật mật mã đã triển khai cho hệ thống game **Huyền Thoại Bẻ Khóa**.
 
 ---
 

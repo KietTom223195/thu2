@@ -1,11 +1,11 @@
-# BÁO CÁO BÀI TẬP LỚN: NÂNG CẤP BẢO MẬT HỆ THỐNG GAME CRYPTO QUEST
+# BÁO CÁO BÀI TẬP LỚN: NÂNG CẤP BẢO MẬT HỆ THỐNG GAME HUYỀN THOẠI BẺ KHÓA
 ### Môn học: FIT4012 Secure System Upgrade Challenge
 ### Nhóm thực hiện: Nhóm BTL_MA_HOA (2-3 thành viên)
 
 ---
 
 ## 1. Giới thiệu bài toán
-* **Bối cảnh thực tế:** Trò chơi **Crypto Quest** là một game nhập vai giải đố 2D giáo dục, nơi người chơi phải vượt qua các phòng giam mật mã cổ xưa bằng cách giải các thuật toán mật mã cổ điển (Caesar, Vigenère) và hiện đại (Hash & Salt, RSA, AES).
+* **Bối cảnh thực tế:** Trò chơi **Huyền Thoại Bẻ Khóa** là một game nhập vai giải đố 2D giáo dục, nơi người chơi phải vượt qua các phòng giam mật mã cổ xưa bằng cách giải các thuật toán mật mã cổ điển (Caesar, Vigenère) và hiện đại (Hash & Salt, RSA, AES).
 * **Mục tiêu hệ thống:** Cung cấp trải nghiệm trực quan sinh động giúp học sinh, sinh viên hiểu rõ cơ chế hoạt động, lỗ hổng bảo mật và cách phòng chống của từng thuật toán mật mã.
 * **Lý do cần bảo mật:** Bảo vệ tiến trình chơi game, điểm số và thứ hạng của người chơi khỏi việc bị thay đổi trái phép (cheat), tấn công phát lại (replay attack) hoặc spam bảng thứ hạng.
 
