@@ -1,4 +1,4 @@
-# Threat Model & Security Analysis - FIT4012 Challenge
+# Threat Model & Security Analysis
 
 Báo cáo này phân tích threat model và các nguy cơ bảo mật đối với hệ thống game mật mã **Crypto Quest** theo chuẩn bài tập lớn FIT4012.
 

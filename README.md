@@ -1,4 +1,4 @@
-# Crypto Quest - Secure RPG 2D Game (FIT4012 Challenge)
+# Crypto Quest - Secure RPG 2D Game
 
 Crypto Quest là một trò chơi nhập vai giải đố 2D giáo dục, nơi người chơi phải vượt qua các phòng giam mật mã cổ xưa bằng cách giải các câu đố thuật toán mật mã cổ điển và hiện đại. Hệ thống đã được nâng cấp bảo mật toàn diện để đáp ứng các yêu cầu kỹ thuật bắt buộc của bài tập lớn **FIT4012 Secure System Upgrade Challenge**.
 
@@ -20,7 +20,7 @@ Crypto Quest là một trò chơi nhập vai giải đố 2D giáo dục, nơi n
 
 ---
 
-## 📂 Cấu trúc thư mục dự án (FIT4012 Standard)
+## 📂 Cấu trúc thư mục dự án
 
 ```text
 fit4012-secure-system/

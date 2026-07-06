@@ -1,4 +1,4 @@
-# Security Test Report - FIT4012 Challenge
+# Security Test Report
 
 Báo cáo này trình bày chi tiết các kịch bản kiểm thử bảo mật (security test cases) đã được xây dựng và chạy thực tế trên hệ thống game **Crypto Quest** nhằm xác minh các cơ chế bảo mật hoạt động đúng.
 

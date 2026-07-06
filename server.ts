@@ -213,7 +213,7 @@ function verifySecuritySignature(req: express.Request, res: express.Response, ne
   const bodyString = (req as any).rawBody || (typeof req.body === "object" ? JSON.stringify(req.body) : (req.body || ""));
   const payload = bodyString + nonce + timestampHeader;
   
-  const hmac = crypto.createHmac("sha256", sessionKey);
+  const hmac = crypto.createHmac("sha256", Buffer.from(sessionKey, "hex"));
   hmac.update(payload);
   const calculatedSignature = hmac.digest("hex");
 

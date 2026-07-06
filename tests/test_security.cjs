@@ -4,7 +4,7 @@ const BASE_URL = "http://localhost:3000";
 const SESSION_ID = "test-secure-session-12345";
 
 function calculateHMAC(payload, sessionKey) {
-  const hmac = crypto.createHmac("sha256", sessionKey);
+  const hmac = crypto.createHmac("sha256", Buffer.from(sessionKey, "hex"));
   hmac.update(payload);
   return hmac.digest("hex");
 }

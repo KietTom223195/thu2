@@ -1,4 +1,4 @@
-# Performance Benchmark Report - FIT4012 Challenge
+# Performance Benchmark Report
 
 Báo cáo này trình bày kết quả đo lường hiệu năng thực thi (performance benchmark) của các thuật toán mật mã đã được áp dụng trong hệ thống game **Crypto Quest**.
 
