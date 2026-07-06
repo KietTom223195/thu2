@@ -17,7 +17,7 @@ export default function App() {
       sid = "cryptsession_" + Math.random().toString(36).substring(2, 15);
       localStorage.setItem("escapesid", sid);
     }
-    sessionStorage.setItem("session_id", sid);
+    localStorage.setItem("session_id", sid);
     return sid;
   });
   const [currentLevel, setCurrentLevel] = useState(1);

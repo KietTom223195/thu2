@@ -35,8 +35,15 @@ const originalFetch = window.fetch;
 window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
 
-  // Only intercept local API endpoints
-  if (!url.startsWith("/api/")) {
+  // Extremely robust check for local API endpoints (handles relative and absolute URLs)
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(url, window.location.origin);
+  } catch (e) {
+    parsedUrl = new URL(url, "http://localhost");
+  }
+
+  if (!parsedUrl.pathname.startsWith("/api/")) {
     return originalFetch(input, init);
   }
 
@@ -44,20 +51,20 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
   const nonce = window.crypto.randomUUID().replace(/-/g, "").substring(0, 16);
   const timestamp = Date.now().toString();
 
-  const sessionKey = sessionStorage.getItem("session_crypto_key") || "";
-  const sessionId = sessionStorage.getItem("session_id") || "default-session-id";
+  const sessionKey = localStorage.getItem("session_crypto_key") || "";
+  const sessionId = localStorage.getItem("session_id") || "default-session-id";
 
   const headers = new Headers(init?.headers || {});
   headers.set("x-session-id", sessionId);
 
   // Key Exchange intercept for start API
-  if (url === "/api/start") {
+  if (parsedUrl.pathname === "/api/start") {
     const response = await originalFetch(input, init);
     const clone = response.clone();
     try {
       const data = await clone.json();
       if (data.status === "success" && data.sessionKey) {
-        sessionStorage.setItem("session_crypto_key", data.sessionKey);
+        localStorage.setItem("session_crypto_key", data.sessionKey);
       }
     } catch (e) {
       // ignore
@@ -96,7 +103,19 @@ window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Pr
     headers
   };
 
-  return originalFetch(input, newInit);
+  const response = await originalFetch(input, newInit);
+
+  // Handle invalid or unknown session automatically (e.g. server restarted)
+  if (response.status === 401 && parsedUrl.pathname !== "/api/start") {
+    localStorage.removeItem("escapesid");
+    localStorage.removeItem("session_id");
+    localStorage.removeItem("session_crypto_key");
+    sessionStorage.clear();
+    window.location.reload();
+  }
+
+  return response;
 };
 
 export {};
+
