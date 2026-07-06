@@ -7,7 +7,11 @@ import { createServer as createViteServer } from "vite";
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+app.use(express.json({
+  verify: (req: any, res, buf) => {
+    req.rawBody = buf.toString("utf8");
+  }
+}));
 
 // In-memory sessions storage by session ID.
 // This is 100% robust against cookie-blocking in browser iframes!
@@ -206,7 +210,7 @@ function verifySecuritySignature(req: express.Request, res: express.Response, ne
   const sessionKey = session.sessionKey;
 
   // Re-calculate HMAC-SHA256
-  const bodyString = typeof req.body === "object" ? JSON.stringify(req.body) : (req.body || "");
+  const bodyString = (req as any).rawBody || (typeof req.body === "object" ? JSON.stringify(req.body) : (req.body || ""));
   const payload = bodyString + nonce + timestampHeader;
   
   const hmac = crypto.createHmac("sha256", sessionKey);
