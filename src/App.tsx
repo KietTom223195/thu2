@@ -181,7 +181,7 @@ export default function App() {
 
   // Titles mapping per active screen level
   const roomTitles: Record<number, string> = {
-    1: "SẢNH PIXEL CAESAR",
+    1: "SẢNH CAESAR",
     2: "THƯ VIỆN CHỮ VIGENÈRE",
     3: "HẦM NGẦM HASH & SALT",
     4: "LÒ LUYỆN GIẢ KIM RSA",
