@@ -1,0 +1,158 @@
+{% extends 'layout.html' %}
+
+{% block room_title %}PHÒNG 4: CỖ MÁY THỜI GIAN CRYPTEX{% endblock %}
+
+{% block content %}
+<div class="interactive-room r4-bg">
+    <!-- Navigation back -->
+    <a href="/room3" class="btn-back-room" title="Về phòng giả kim">◀ Lò Luyện Kim</a>
+
+    <!-- Futuristic console core elements -->
+    <div class="spotlight r4-tech-generator">
+        <div class="neon-beaker-fluid"></div>
+        <div class="rotating-reactor-core"></div>
+    </div>
+
+    <!-- Dials and widgets on the main desk panel -->
+    <div class="r4-radars-panel">
+        <canvas id="radar-screen" width="90" height="90" class="mini-grid-radar"></canvas>
+    </div>
+
+    <!-- Interactive Cryptex Control Console (Giống hệt hình số 4) -->
+    <div class="spotlight clickable r4-cryptex-unit" onclick="openCryptexModal()">
+        <span class="pulse-spark font-horror">⚡ THIẾT BỊ HOẠT CHẤT AES</span>
+        <span class="label font-type">BẢNG ĐIỀU KHIỂN TRUNG TÂM</span>
+    </div>
+
+    <!-- Cryptex Activation Modal (Giống hệt trong ảnh chụp) -->
+    <div id="cryptex-modal" class="modal hidden">
+        <div class="modal-content parchment-bg text-dark text-center">
+            <span class="btn-close-modal" onclick="closeCryptexModal()">&times;</span>
+            <h2 class="font-horror">KÍCH HOẠT CỔ MÁY THỜI GIAN</h2>
+            <hr class="blood-divider">
+            
+            <div class="cryptex-container font-type">
+                <p class="font-bold mb-4">NHẬP KHÓA AES (SỰ KẾT HỢP CUỐI CÙNG CC):</p>
+                
+                <div class="cryptex-input-box">
+                    <input type="text" id="aes-key-input" placeholder="MẬT MÃ TỔNG HỢP DUY NHẤT..." class="cryptex-pass-field uppercase font-horror text-center">
+                </div>
+                
+                <p class="clue-caption italic text-xs text-blood my-3">
+                    *Gợi ý: Hãy chắt lọc thông điệp vĩnh cửu từ 3 phòng qua:<br>
+                    [Bản rõ Caesar] + [Từ khóa Vigenère] + [Số đúc RSA n]
+                </p>
+
+                <button class="btn-spooky-submit font-horror mt-2 text-xl" onclick="submitAESFinal()">KHỞI ĐỘNG (ACTIVATE)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- End Game Success Overlay Screen (Màn hình thắng cuộc lung linh rùng rợn) -->
+    <div id="escape-success-screen" class="modal hidden esc-screen-overlay">
+        <div class="esc-box parchment-bg shadow-lg">
+            <h1 class="font-horror esc-headline text-blood animate-pulse text-6xl">THOÁT KHỎI PHÒNG GIAM!</h1>
+            <p class="font-type subtext italic text-dark my-4">Không gian bẻ cong gãy khúc, bạn rơi tự do qua cổng thời gian...</p>
+            <hr class="blood-divider my-4">
+            
+            <div class="score-card font-type text-dark text-left">
+                <p class="text-xl">🌟 Tổng điểm mật mã: <strong id="final-score" class="text-blood">0</strong></p>
+                <p class="text-xl">⏱️ Thời gian giải thoát: <strong id="final-time" class="text-blood">0</strong> giây</p>
+                <p class="text-xl">🏆 Xếp hạng thám tử: <strong id="final-rank" class="text-blood">Siêu Cấp Cryptographer</strong></p>
+            </div>
+            
+            <div class="action-footer mt-6">
+                <button class="btn-spooky-submit font-horror" onclick="resetGameForced()">CHƠI LẠI TRÀO PHÚNG</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        startRadarLoop();
+    });
+
+    function startRadarLoop() {
+        const canvas = document.getElementById("radar-screen");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        let angle = 0;
+        
+        function draw() {
+            ctx.clearRect(0,0,90,90);
+            ctx.strokeStyle = "rgba(40, 255, 40, 0.4)";
+            ctx.lineWidth = 1;
+            
+            // Draw grid
+            ctx.beginPath();
+            ctx.arc(45, 45, 40, 0, Math.PI * 2);
+            ctx.arc(45, 45, 25, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Sweeping line
+            ctx.strokeStyle = "#28ff28";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(45, 45);
+            ctx.lineTo(45 + 38 * Math.cos(angle), 45 + 38 * Math.sin(angle));
+            ctx.stroke();
+            
+            angle += 0.05;
+            requestAnimationFrame(draw);
+        }
+        draw();
+    }
+
+    function openCryptexModal() {
+        document.getElementById("cryptex-modal").classList.remove("hidden");
+    }
+
+    function closeCryptexModal() {
+        document.getElementById("cryptex-modal").classList.add("hidden");
+    }
+
+    function submitAESFinal() {
+        const keyVal = document.getElementById("aes-key-input").value.trim();
+        
+        fetch('/api/verify_aes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ aes_key: keyVal })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                closeCryptexModal();
+                
+                // Load and play synthesized engine noise
+                AudioEngine.playSuccess();
+                
+                // Populate end game statistics
+                document.getElementById("final-score").innerText = data.total_score || 1000;
+                document.getElementById("final-time").innerText = data.elapsed_time || 120.5;
+                
+                let rank = "Cryptographer Nghiệp Dư";
+                if (data.total_score >= 1000) rank = "Huyền Thoại Bẻ Khóa Thần Sấm";
+                else if (data.total_score >= 600) rank = "Chuyên Gia Mật Khải Hoàng Gia";
+                document.getElementById("final-rank").innerText = rank;
+                
+                // Display awesome escape screen overlay
+                document.getElementById("escape-success-screen").classList.remove("hidden");
+            } else {
+                showSpookyAlert(data.message, false);
+            }
+        })
+        .catch(err => {
+            showSpookyAlert("Sai lệch cỗ máy nghiêm trọng, tia lửa hồ quang điện rít gầm ghê rợn sượt qua tóc bạn!", false);
+        });
+    }
+
+    function resetGameForced() {
+        fetch('/reset', { method: 'POST' })
+        .then(() => {
+            window.location.href = '/room1';
+        });
+    }
+</script>
+{% endblock %}

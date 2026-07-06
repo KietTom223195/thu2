@@ -1,0 +1,231 @@
+{% extends 'layout.html' %}
+
+{% block room_title %}PHÒNG 1: SẢNH CHÍNH BĂNG GIÁ{% endblock %}
+
+{% block content %}
+<div class="interactive-room r1-bg">
+    <!-- Creepy Blood Number '3' on the wall -->
+    <div class="spotlight clickable blood-digit-3" onclick="examineWallClue()">
+        <span class="blood-font text-blood">3</span>
+    </div>
+
+    <!-- Paper scrap clue layout -->
+    <div class="spotlight clickable scrap-paper" onclick="examineScrapPaper()">
+        <div class="paper-content font-type">
+            <p>BẢN MÃ KHỞI ĐẦU:</p>
+            <h3>KHOOR</h3>
+        </div>
+    </div>
+
+    <!-- Character: Lord Crow the Librarian in a tuxedo -->
+    <div class="character-crow clickable" onclick="speakToCrow()">
+        <div class="crow-bubble hidden-bubble" id="crow-dialogue">
+            "Chào mừng... Ai sẽ mở cánh cửa rậm rạp? Hãy xoay bánh xe đá điều phối k của ngươi..."
+        </div>
+        <div class="crow-avatar"></div>
+    </div>
+
+    <!-- Stone wheel pedestal (Bánh xe đá) -->
+    <div class="spotlight clickable stone-pedestal" onclick="openCaesarModal()">
+        <div class="stone-wheel">
+            <div class="wheel-outer">
+                <div class="wheel-inner">A-Z</div>
+            </div>
+            <span class="pedestal-label font-type">BÁNH XE ĐÁ</span>
+        </div>
+    </div>
+
+    <!-- Closed Library gate with lock -->
+    <div class="spotlight clickable library-door" onclick="examineLibraryDoor()">
+        <div class="door-lock-icon">🔒</div>
+        <span class="door-label">THƯ VIỆN</span>
+    </div>
+
+    <!-- Caesar cipher modal (Bánh xe đá UI giống như ảnh chụp) -->
+    <div id="caesar-modal" class="modal hidden">
+        <div class="modal-content parchment-bg">
+            <span class="btn-close-modal" onclick="closeCaesarModal()">&times;</span>
+            <h2 class="title-caesar font-horror">GIẢI MÃ CAESAR</h2>
+            <hr class="blood-divider">
+            
+            <div class="caesar-container">
+                <div class="caesar-graphic-panel">
+                    <!-- Concentric circles representing Caesar wheel -->
+                    <div class="caesar-svg-wrapper">
+                        <svg id="caesar-wheel-svg" viewBox="0 0 200 200" width="160" height="160">
+                            <!-- Outer Wheel -->
+                            <circle cx="100" cy="100" r="90" fill="#2b2b2a" stroke="#8c201a" stroke-width="2"/>
+                            <!-- Inner Wheel -->
+                            <circle cx="100" cy="100" r="60" fill="#423d37" stroke="#000" stroke-width="1.5"/>
+                            <polygon points="100,5 95,20 105,20" fill="#e8cfa1"/>
+                            
+                            <!-- Static Outer Letters -->
+                            <g id="outer-letters" fill="#fff" font-size="9" font-family="monospace" text-anchor="middle" dominant-baseline="central"></g>
+                            <!-- Rotating Inner Letters -->
+                            <g id="inner-letters" fill="#ff6e59" font-size="8" font-family="monospace" text-anchor="middle" dominant-baseline="central" transform="rotate(0, 100, 100)"></g>
+                        </svg>
+                    </div>
+                    <p class="crypto-note font-type italic text-center">Bấm nút để xoay hoặc điều chỉnh k tăng giảm</p>
+                </div>
+                
+                <div class="caesar-form">
+                    <div class="form-group">
+                        <label class="font-type font-bold">BẢN MÃ ĐANG CHỌN:</label>
+                        <select id="caesar-ciphertext-select" onchange="updateCaesarClueDesc()" class="custom-select">
+                            <option value="ILWGQX">ILWGQX (Khóa cửa Thư viện)</option>
+                            <option value="KHOOR">KHOOR (Manh mối Sảnh chính)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group style-stepper">
+                        <label class="font-type font-bold">SỐ BƯỚC DỊCH (k):</label>
+                        <div class="stepper-controls">
+                            <input type="number" id="caesar-k" value="0" min="0" max="25" readonly class="stepper-input">
+                            <div class="stepper-buttons">
+                                <button onclick="adjustCaesarK(1)" class="btn-step-up">▲</button>
+                                <button onclick="adjustCaesarK(-1)" class="btn-step-down">▼</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="font-type font-bold">CHUỖI KẾT QUẢ:</label>
+                        <input type="text" id="caesar-result" readonly class="result-display-field font-type" placeholder="FITDNU / HELLO">
+                    </div>
+
+                    <button class="btn-spooky-submit font-horror" onclick="submitCaesarSolution()">XÁC NHẬN GIẢI MÃ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let currentK = 0;
+
+    document.addEventListener("DOMContentLoaded", function() {
+        drawCaesarWheel();
+    });
+
+    function drawCaesarWheel() {
+        const outerG = document.getElementById("outer-letters");
+        const innerG = document.getElementById("inner-letters");
+        if(!outerG || !innerG) return;
+        
+        outerG.innerHTML = "";
+        innerG.innerHTML = "";
+        
+        for (let i = 0; i < 26; i++) {
+            const angle = (i * 360 / 26) - 90;
+            const rad = angle * Math.PI / 180;
+            
+            // Outer placement (r = 76)
+            const ox = 100 + 76 * Math.cos(rad);
+            const oy = 100 + 76 * Math.sin(rad);
+            outerG.innerHTML += `<text x="${ox}" y="${oy}" transform="rotate(${angle+90}, ${ox}, ${oy})">${alphabet[i]}</text>`;
+            
+            // Inner placement (r = 46)
+            const ix = 100 + 46 * Math.cos(rad);
+            const iy = 100 + 46 * Math.sin(rad);
+            innerG.innerHTML += `<text x="${ix}" y="${iy}" transform="rotate(${angle+90}, ${ix}, ${iy})">${alphabet[i]}</text>`;
+        }
+    }
+
+    function adjustCaesarK(amount) {
+        currentK = (currentK + amount + 26) % 26;
+        document.getElementById("caesar-k").value = currentK;
+        
+        // Rotate SVG group for inner letters
+        const rotateAngle = currentK * (360 / 26);
+        document.getElementById("inner-letters").setAttribute("transform", `rotate(${rotateAngle}, 100, 100)`);
+        
+        // Audio tick sound
+        AudioEngine.playMetalClash();
+        
+        // Realtime decode calculation
+        calculateRealtimeCaesar();
+    }
+
+    function calculateRealtimeCaesar() {
+        const select = document.getElementById("caesar-ciphertext-select");
+        const ciphertext = select.value;
+        let plaintext = "";
+        
+        for (let char of ciphertext) {
+            if (alphabet.includes(char)) {
+                let code = char.charCodeAt(0) - 65;
+                // Shift backward for decryption: (code - step + 26) % 26
+                let pCode = (code - currentK + 26) % 26;
+                plaintext += alphabet[pCode];
+            } else {
+                plaintext += char;
+            }
+        }
+        document.getElementById("caesar-result").value = plaintext;
+    }
+
+    function updateCaesarClueDesc() {
+        calculateRealtimeCaesar();
+    }
+
+    function openCaesarModal() {
+        document.getElementById("caesar-modal").classList.remove("hidden");
+        calculateRealtimeCaesar();
+    }
+
+    function closeCaesarModal() {
+        document.getElementById("caesar-modal").classList.add("hidden");
+    }
+
+    function examineWallClue() {
+        showSpookyAlert("Một vệt máu đỏ lòm hình con số '3' được quẹt lên tường thô bạo. Nó trông vẫn còn ướt ách...");
+    }
+
+    function examineScrapPaper() {
+        showSpookyAlert("Mảnh giấy da cũ nát viết: <strong>BẢN MÃ KHỞI ĐẦU: KHOOR</strong>.<br>Kèm theo hình vẽ một chiếc mũi tên dịch chuyển ngược.");
+    }
+
+    function speakToCrow() {
+        const dialog = document.getElementById("crow-dialogue");
+        dialog.classList.remove("hidden-bubble");
+        setTimeout(() => {
+            dialog.classList.add("hidden-bubble");
+        }, 5000);
+        showSpookyAlert("Ngài Quạ kêu lên những tiếng 'quạ quạ' u ám bằng tiếng người: 'Tìm ra bản rõ của ILWGQX với chìa khóa máu trên vách tường... Hãy giải mở!'");
+    }
+
+    function examineLibraryDoor() {
+        showSpookyAlert("Cánh cửa dẫn vào Thư viện. Ổ khóa sắt găm sâu vào thớ gỗ yêu cầu nhập mã 6 ký tự viết hoa từ phép giải mã bánh xe đá!");
+    }
+
+    function submitCaesarSolution() {
+        const select = document.getElementById("caesar-ciphertext-select");
+        const ciphertext = select.value;
+        const resultString = document.getElementById("caesar-result").value;
+        
+        fetch('/api/verify_caesar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ciphertext: ciphertext, k: currentK })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showSpookyAlert(data.message, true);
+                closeCaesarModal();
+                setTimeout(() => {
+                    if (data.next_room) {
+                        window.location.href = data.next_room;
+                    }
+                }, 2500);
+            } else {
+                showSpookyAlert(data.message, false);
+            }
+        })
+        .catch(err => {
+            showSpookyAlert("Ổ khóa kêu lọc cọc lỗi đường truyền. Một cảm giác lạnh buốt chạy dọc sống lưng...", false);
+        });
+    }
+</script>
+{% endblock %}

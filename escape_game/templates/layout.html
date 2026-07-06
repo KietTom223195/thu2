@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cryptography Escape Room - Rusty Lake Style</title>
+    <!-- Creepy/Horror Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="game-wrapper">
+        <header class="game-header">
+            <div class="header-left">
+                <span class="room-title">{% block room_title %}{% endblock %}</span>
+            </div>
+            <div class="header-right">
+                <span class="score-display">ĐIỂM: <strong id="header-score">{{ session.get('score', 0) }}</strong></span>
+                <span class="level-display">CẤP ĐỘ: <strong id="header-level">{{ session.get('current_level', 1) }}/4</strong></span>
+                <button class="btn-reset" onclick="resetGame()">HÀNH TRÌNH MỚI</button>
+            </div>
+        </header>
+
+        <main class="game-viewport">
+            {% block content %}{% endblock %}
+        </main>
+        
+        <!-- Spooky Overlay Messages -->
+        <div id="spooky-alert" class="spooky-alert-container hidden">
+            <div class="spooky-alert-box">
+                <div class="blood-splatter"></div>
+                <p id="spooky-alert-message">Bóng tối đang theo dõi bạn...</p>
+                <button class="btn-alert-close" onclick="closeSpookyAlert()">TIẾP TỤC KHẢO SÁT</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Web Audio synthesized spooky ambiance/actions sounds -->
+    <script>
+        // Spooky sound synthesis using Web Audio API
+        const AudioEngine = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            playDoorOpen() {
+                this.init();
+                const now = this.ctx.currentTime;
+                // Creaky door sound synthesised via filter and multiple oscillators
+                const osc1 = this.ctx.createOscillator();
+                const osc2 = this.ctx.createOscillator();
+                const gainNode = this.ctx.createGain();
+                
+                osc1.type = 'sawtooth';
+                osc2.type = 'triangle';
+                
+                osc1.frequency.setValueAtTime(60, now);
+                osc1.frequency.exponentialRampToValueAtTime(120, now + 1.2);
+                
+                osc2.frequency.setValueAtTime(65, now);
+                osc2.frequency.exponentialRampToValueAtTime(130, now + 1.2);
+                
+                gainNode.gain.setValueAtTime(0.15, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
+                
+                osc1.connect(gainNode);
+                osc2.connect(gainNode);
+                gainNode.connect(this.ctx.destination);
+                
+                osc1.start();
+                osc2.start();
+                osc1.stop(now + 1.5);
+                osc2.stop(now + 1.5);
+            },
+            playError() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(90, now);
+                osc.frequency.setValueAtTime(75, now + 0.1);
+                osc.frequency.setValueAtTime(60, now + 0.2);
+                
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.start();
+                osc.stop(now + 0.6);
+            },
+            playMetalClash() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.linearRampToValueAtTime(100, now + 0.4);
+                
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.start();
+                osc.stop(now + 0.5);
+            },
+            playSuccess() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc1 = this.ctx.createOscillator();
+                const osc2 = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(330, now); // E4
+                osc1.frequency.setValueAtTime(440, now + 0.15); // A4
+                osc1.frequency.setValueAtTime(554, now + 0.3); // C#5
+                osc1.frequency.setValueAtTime(659, now + 0.45); // E5
+                
+                osc2.type = 'triangle';
+                osc2.frequency.setValueAtTime(165, now);
+                osc2.frequency.setValueAtTime(220, now + 0.15);
+                osc2.frequency.setValueAtTime(277, now + 0.3);
+                osc2.frequency.setValueAtTime(329, now + 0.45);
+                
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc1.start();
+                osc2.start();
+                osc1.stop(now + 0.8);
+                osc2.stop(now + 0.8);
+            }
+        };
+
+        function showSpookyAlert(message, isSuccess = false) {
+            const container = document.getElementById('spooky-alert');
+            const msgBox = document.getElementById('spooky-alert-message');
+            
+            msgBox.innerHTML = message;
+            container.classList.remove('hidden');
+            
+            if (isSuccess) {
+                container.classList.add('success-flash');
+                container.classList.remove('error-shake');
+                AudioEngine.playSuccess();
+            } else {
+                container.classList.remove('success-flash');
+                container.classList.add('error-shake');
+                AudioEngine.playError();
+                
+                // Remove shake after animation completes to replay on next call
+                setTimeout(() => {
+                    container.classList.remove('error-shake');
+                }, 800);
+            }
+        }
+
+        function closeSpookyAlert() {
+            document.getElementById('spooky-alert').classList.add('hidden');
+        }
+
+        function resetGame() {
+            if (confirm("Bạn có chắc chắn muốn xóa đi ký ức rùng rợn hiện tại và quay về sảnh chính?")) {
+                fetch('/reset', { method: 'POST' })
+                .then(() => {
+                    window.location.href = '/room1';
+                });
+            }
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+</body>
+</html>

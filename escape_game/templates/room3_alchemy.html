@@ -1,0 +1,173 @@
+{% extends 'layout.html' %}
+
+{% block room_title %}PHÒNG 3: PHÒNG GIẢ BẢO GIẢ KIM THUẬT{% endblock %}
+
+{% block content %}
+<div class="interactive-room r3-bg">
+    <!-- Back navigation -->
+    <a href="/room2" class="btn-back-room" title="Về Thư viện">◀ Thư Viện</a>
+
+    <!-- Burning forge (Lò luyện kim) -->
+    <div class="spotlight clickable r3-furnace" onclick="examineFurnace()">
+        <div class="furnace-glow"></div>
+        <span class="label font-type">LÒ GẦM LỬA ĐỎ</span>
+    </div>
+
+    <!-- Alchemy handbook detailing RSA -->
+    <div class="spotlight clickable r3-alchemy-book" onclick="openNotebookModal()">
+        <div class="notebook-sheet font-type">
+            <span class="nb-title">SỔ GIẢ KIM THUẬT</span>
+        </div>
+    </div>
+
+    <!-- Iron scales for mass test balances -->
+    <div class="spotlight clickable r3-scales" onclick="examineScales()">
+        <div class="scales-icon">⚖️</div>
+    </div>
+
+    <!-- Iron gate with keyhole -->
+    <div class="spotlight clickable r3-heavy-gate" onclick="examineHeavyGate()">
+        <div class="keyhole-icon">🗝️</div>
+        <span class="door-label">KHÓA CỬA SẮT TRANG THỜI GIAN</span>
+    </div>
+
+    <!-- Private Key Forge Casting Panel (Bảng đúc chìa khóa) -->
+    <div class="spotlight clickable r3-forge-panel" onclick="openForgeModal()">
+        <div class="casting-mold-slot">
+            <span class="casting-icon">⚒️</span>
+            <span class="label font-type">BÀN ĐÚC CHÌA KHÓA</span>
+        </div>
+    </div>
+
+    <!-- Notebook Content Modal -->
+    <div id="notebook-modal" class="modal hidden">
+        <div class="modal-content b-overlay-custom parchment-bg text-dark font-type">
+            <span class="btn-close-modal" onclick="closeNotebookModal()">&times;</span>
+            <h2 class="font-horror">Ý CHÍ CỦA SỐ NGUYÊN TỐ</h2>
+            <hr class="blood-divider">
+            <div class="notebook-formulas">
+                <p class="font-bold">Nhập môn Giả Kim rèn sắt Thần:</p>
+                <p>Khóa công khai và Khóa riêng tạo nên một thể liên thông âm dương vĩnh cửu.</p>
+                <div class="formula-box font-mono bg-charcoal text-white rounded p-3 my-2 text-sm leading-relaxed">
+                    MẬT SỐ ĐẦU VÀO:<br>
+                    p = 3 (Số nguyên tố lửa)<br>
+                    q = 11 (Số nguyên tố đất)<br>
+                    ------------------------------<br>
+                    Tích thiên thể n = p * q<br>
+                    Hàm Euler: phi_n = (p - 1) * (q - 1)<br>
+                    Khai thông dòng điện: e = 3 (Khóa công khai)<br>
+                    ------------------------------<br>
+                    Tìm KHÓA RIÊNG d sao cho:<br>
+                    (e * d) modulo (phi_n) = 1
+                </div>
+                <p class="italic text-xs text-blood">"Hãy nhập cặp số tương ứng n và d vào lò đúc để tinh luyện chất Chì thành Private Key!"</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Casting Forge Modal (Giống hệt hình chụp số 3) -->
+    <div id="forge-modal" class="modal hidden">
+        <div class="modal-content parchment-bg text-dark">
+            <span class="btn-close-modal" onclick="closeForgeModal()">&times;</span>
+            <h2 class="font-horror">BÀN ĐÚC CHÌA KHÓA PRIVATE KEY</h2>
+            <hr class="blood-divider">
+            
+            <div class="forge-container font-type">
+                <div class="forge-image-panel">
+                    <div class="anvil-key-casting" id="key-casting-animation">
+                        <!-- Key graphic inside mould -->
+                        <div class="molten-key">🔑</div>
+                    </div>
+                    <p class="crypto-note italic text-center mt-2">Dùng lực cơ học để đóng mộc đồng</p>
+                </div>
+
+                <div class="forge-form">
+                    <div class="form-group">
+                        <label class="font-bold">Nhập n (n = p * q):</label>
+                        <input type="number" id="rsa-n" placeholder="Tính n từ p*q..." class="custom-input font-horror">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="font-bold">Nhập d (Khóa riêng):</label>
+                        <input type="number" id="rsa-d" placeholder="Tính d thỏa hệ modulo..." class="custom-input font-horror">
+                    </div>
+
+                    <button class="btn-spooky-submit font-horror" onclick="submitRSASolution()">ĐÚC KHÓA (CAST KEY)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openNotebookModal() {
+        document.getElementById("notebook-modal").classList.remove("hidden");
+        AudioEngine.playDoorOpen();
+    }
+
+    function closeNotebookModal() {
+        document.getElementById("notebook-modal").classList.add("hidden");
+    }
+
+    function openForgeModal() {
+        document.getElementById("forge-modal").classList.remove("hidden");
+    }
+
+    function closeForgeModal() {
+        document.getElementById("forge-modal").classList.add("hidden");
+    }
+
+    function examineFurnace() {
+        showSpookyAlert("Chiếc lò luyện sắt hực hực khí nóng dữ dội. Lửa đỏ lấp lánh phản chiếu những ký hiệu hóa chất biến dạng tà dị.");
+    }
+
+    function examineScales() {
+        showSpookyAlert("Chiếc cân thăng bằng giả kim thuật đóng đầy mạng nhện xám xịt. Hai bên đĩa cân dính bụi chì rỉ sét nặng nề.");
+    }
+
+    function examineHeavyGate() {
+        showSpookyAlert("Cánh cổng sắt nặng nề dẫn sâu xuống căn phòng cỗ máy thời gian mật mã cổ. Trên cửa gầm một lỗ khóa RSA phức tạp cần một chiếc hắc khóa Private Key!");
+    }
+
+    function submitRSASolution() {
+        const nValue = document.getElementById("rsa-n").value.trim();
+        const dValue = document.getElementById("rsa-d").value.trim();
+        
+        // Trigger visual shake during hammering action
+        const animationRef = document.getElementById("key-casting-animation");
+        if(animationRef) {
+            animationRef.classList.add("forge-hammer-shake");
+            AudioEngine.playMetalClash();
+            setTimeout(() => {
+                animationRef.classList.remove("forge-hammer-shake");
+            }, 600);
+        }
+
+        fetch('/api/verify_rsa', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ n: nValue, d: dValue })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showSpookyAlert(data.message, true);
+                if(animationRef) {
+                    animationRef.classList.add("gold-key-active");
+                }
+                closeForgeModal();
+                setTimeout(() => {
+                    if (data.next_room) {
+                        window.location.href = data.next_room;
+                    }
+                }, 2500);
+            } else {
+                showSpookyAlert(data.message, false);
+            }
+        })
+        .catch(err => {
+            showSpookyAlert("Lò đúc nguội tắt lạnh ghê rợn vì sai quy trình toán học nguyên tố. Hãy kiểm tra lại phép nhân n và modulo d!", false);
+        });
+    }
+</script>
+{% endblock %}

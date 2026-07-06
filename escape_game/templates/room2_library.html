@@ -1,0 +1,201 @@
+{% extends 'layout.html' %}
+
+{% block room_title %}PHÒNG 2: THƯ VIỆN CỔ KÍNH U ÁM{% endblock %}
+
+{% block content %}
+<div class="interactive-room r2-bg">
+    <!-- Back arrow index -->
+    <a href="/room1" class="btn-back-room" title="Về sảnh chính">◀ Sảnh Chính</a>
+
+    <!-- Torn interactive painting spelling "DEATH" -->
+    <div class="spotlight clickable r2-painting" onclick="examinePainting()">
+        <div class="painting-wrapper">
+            <span class="painting-letters font-horror">D E A T H</span>
+        </div>
+        <span class="label font-type">TRANH SƠN DẦU BỊ RÁCH</span>
+    </div>
+
+    <!-- Book on table (contains Vigenére and some secret coordinates clue) -->
+    <div class="spotlight clickable r2-table-book" onclick="openAncientBook()">
+        <div class="book-spine font-type">MẬT MÃ CỔ ĐẠI</div>
+    </div>
+
+    <!-- Candle lantern casting shadows -->
+    <div class="flickering-lantern clickable" onclick="examineLantern()"></div>
+
+    <!-- Hidden treasure chest with cryptex-rotor lock -->
+    <div class="spotlight clickable library-chest" onclick="openCylinderLockModal()">
+        <div class="antique-chest-sprite">
+            <div class="padlock-rotor">🔒</div>
+        </div>
+        <span class="door-label">RƯƠNG ĐÁ BÍ MẬT</span>
+    </div>
+
+    <!-- Ancient Book Overlay Modal -->
+    <div id="ancient-book-modal" class="modal hidden">
+        <div class="modal-content b-overlay-custom parchment-bg text-dark font-type">
+            <span class="btn-close-modal" onclick="closeAncientBook()">&times;</span>
+            <div class="book-split-pages">
+                <div class="book-page left-page">
+                    <h3 class="font-horror font-bold">MẬT MÃ CỔ ĐẠI</h3>
+                    <p class="text-xs">Sách cổ viết:</p>
+                    <p class="text-sm italic">"Kẻ tầm học khôn ngoan mượn lưới Vigenère để rây hạt cát bụi trần. Mỗi chữ cái của TỪ KHÓA dịch chỉnh linh hồn bản mã đi tương ứng."</p>
+                    <!-- Small Vigenere grid display mock layout -->
+                    <div class="vigenere-mini-table font-mono">
+                        <div class="v-row text-blood">  A B C D E F G H I</div>
+                        <div class="v-row">A A B C D E F G H I</div>
+                        <div class="v-row">B B C D E F G H I J</div>
+                        <div class="v-row">C C D E F G H I J K</div>
+                        <div class="v-row">D D E F G H I J K L</div>
+                        <div class="v-row">E E F G H I J K L M</div>
+                    </div>
+                </div>
+                <div class="book-page right-page text-center">
+                    <h4 class="font-bold text-blood">BẢN MÃ GIẤU TRONG THƯ TỊCH:</h4>
+                    <div class="parchment-sheet">
+                        <span class="clue-ciphertext font-horror text-2xl tracking-wide text-charcoal">YJR KVR</span>
+                    </div>
+                    <p class="mt-4 text-xs italic">"Hãy tìm chiếc Chốt Rương tủ gỗ dưới bóng tối..."</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Letter Cylinder Lock Modal (Giống hệt hình chụp số 2) -->
+    <div id="cylinder-modal" class="modal hidden">
+        <div class="modal-content parchment-bg">
+            <span class="btn-close-modal" onclick="closeCylinderLockModal()">&times;</span>
+            <h2 class="font-horror">Ổ KHÓA TRỤ XOAY VIGENÈRE</h2>
+            <hr class="blood-divider">
+            
+            <div class="vigenere-interface">
+                <!-- Spooky cylinder visual container -->
+                <div class="cylinder-drum-container">
+                    <div class="cylinder-drum" id="drum-slots">
+                        <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span>
+                    </div>
+                </div>
+
+                <div class="vigenere-form-body font-type">
+                    <div class="form-group">
+                        <label class="font-bold">Nhập TỪ KHÓA (Keyword):</label>
+                        <input type="text" id="vigenere-keyword" placeholder="Nhập từ danh họa bị rách..." class="custom-input font-horror uppercase" oninput="calculateRealtimeVigenere()">
+                    </div>
+                    <div class="form-group">
+                        <label class="font-bold">BẢN MÃ TRONG SÁCH:</label>
+                        <input type="text" id="vigenere-ciphertext" value="YJR KVR" class="custom-input font-horror uppercase" oninput="calculateRealtimeVigenere()">
+                    </div>
+                    <div class="form-group">
+                        <label class="font-bold">BẢN RÕ GIẢI MÃ:</label>
+                        <input type="text" id="vigenere-result" readonly class="result-display-field text-blood font-horror" placeholder="Kết quả...">
+                    </div>
+                    
+                    <button class="btn-spooky-submit font-horror" onclick="submitVigenereSolution()">GIẢI MÃ RƯƠNG ĐÁ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    function updateDrumDisplay(plaintext) {
+        const drum = document.getElementById("drum-slots");
+        if (!drum) return;
+        drum.innerHTML = "";
+        let cleanText = (plaintext || "VFRROO").toUpperCase().replace(/[^A-Z]/g, "").substring(0, 6);
+        while (cleanText.length < 6) cleanText += "_";
+        
+        for (let char of cleanText) {
+            drum.innerHTML += `<div class="drum-letter-ring font-horror">${char}</div>`;
+        }
+    }
+
+    function calculateRealtimeVigenere() {
+        const keyword = document.getElementById("vigenere-keyword").value.toUpperCase().replace(/[^A-Z]/g, "");
+        const ciphertext = document.getElementById("vigenere-ciphertext").value.toUpperCase();
+        
+        if (!keyword) {
+            document.getElementById("vigenere-result").value = "";
+            updateDrumDisplay("______");
+            return;
+        }
+
+        let plaintext = "";
+        let j = 0;
+        for (let i = 0; i < ciphertext.length; i++) {
+            let c = ciphertext[i];
+            if (c === ' ') {
+                plaintext += ' ';
+                continue;
+            }
+            if (alphabet.includes(c)) {
+                let cCode = c.charCodeAt(0) - 65;
+                let kCode = keyword[j % keyword.length].charCodeAt(0) - 65;
+                let pCode = (cCode - kCode + 26) % 26;
+                plaintext += alphabet[pCode];
+                j++;
+            } else {
+                plaintext += c;
+            }
+        }
+        document.getElementById("vigenere-result").value = plaintext;
+        updateDrumDisplay(plaintext);
+    }
+
+    function openAncientBook() {
+        document.getElementById("ancient-book-modal").classList.remove("hidden");
+        AudioEngine.playDoorOpen();
+    }
+
+    function closeAncientBook() {
+        document.getElementById("ancient-book-modal").classList.add("hidden");
+    }
+
+    function openCylinderLockModal() {
+        document.getElementById("cylinder-modal").classList.remove("hidden");
+        calculateRealtimeVigenere();
+    }
+
+    function closeCylinderLockModal() {
+        document.getElementById("cylinder-modal").classList.add("hidden");
+    }
+
+    function examinePainting() {
+        showSpookyAlert("Bức tranh vẽ chân dung quý tộc bị rách tả tơi từng mẩu. Bạn cẩn thận ghép các mẩu lại để lộ ra chữ viết nguệch ngoạc bằng máu: <strong>DEATH</strong>.");
+    }
+
+    function examineLantern() {
+        showSpookyAlert("Chiếc đèn dầu rỉ sét bập bùng ngọn lửa xanh lét kỳ bí. Ánh sáng nó tạt bóng vẽ nên những họa chất chết chóc u uất.");
+    }
+
+    function submitVigenereSolution() {
+        const keyword = document.getElementById("vigenere-keyword").value.trim();
+        const ciphertext = document.getElementById("vigenere-ciphertext").value.trim();
+        
+        fetch('/api/verify_vigenere', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ keyword: keyword, ciphertext: ciphertext })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showSpookyAlert(data.message, true);
+                closeCylinderLockModal();
+                setTimeout(() => {
+                    if (data.next_room) {
+                        window.location.href = data.next_room;
+                    }
+                }, 2500);
+            } else {
+                showSpookyAlert(data.message, false);
+            }
+        })
+        .catch(err => {
+            showSpookyAlert("Bụi bặm rơi đầy rương cổ khiến cơ quan kẹt cứng. Thử nhập từ khóa bằng chữ viết hoa chuẩn xác xem sao...", false);
+        });
+    }
+</script>
+{% endblock %}

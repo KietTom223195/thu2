@@ -1,0 +1,6 @@
+{
+  "name": "Cryptography Escape Room",
+  "description": "Một trò chơi giải đố rùng rợn phong cách Point & Click giống Rusty Lake sử dụng mật mã Caesar, Vigenère, RSA và AES.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

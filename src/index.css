@@ -1,0 +1,192 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+.parchment-bg {
+  background-color: #e6dfc3;
+  background-image: radial-gradient(circle, transparent, rgba(50, 40, 20, 0.15) 100%);
+}
+
+/* Modernized readable fonts that support Vietnamese perfectly */
+.font-pixel {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+.font-pressstart {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.pixel-border {
+  border: 4px solid #1a1512;
+  box-shadow: 
+    -4px 0 0 0 #1a1512,
+    4px 0 0 0 #1a1512,
+    0 -4px 0 0 #1a1512,
+    0 4px 0 0 #1a1512;
+}
+
+.pixel-btn {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  position: relative;
+  border: 3px solid #000;
+  background-color: #382c23;
+  color: #ebdcb9;
+  font-weight: bold;
+  padding: 6px 12px;
+  cursor: pointer;
+  outline: none;
+  box-shadow: -4px 4px 0 0 #000;
+  transition: all 0.1s ease;
+}
+
+.pixel-btn:hover {
+  background-color: #524033;
+  color: #ffaa00;
+}
+
+.pixel-btn:active {
+  box-shadow: 0 0 0 0 transparent;
+  transform: translate(-4px, 4px);
+}
+
+.pixel-btn-danger {
+  background-color: #611b15;
+  color: #fff;
+}
+.pixel-btn-danger:hover {
+  background-color: #8c261e;
+  color: #fff;
+}
+
+.pixel-btn-success {
+  background-color: #1e5229;
+  color: #fff;
+}
+.pixel-btn-success:hover {
+  background-color: #2b783c;
+  color: #fff;
+}
+
+.pixel-card {
+  border: 4px solid #4a3728;
+  background-color: #1c1511;
+  box-shadow: -6px 6px 0 0 #000;
+  padding: 16px;
+}
+
+/* CRT Scanline & Screen Effects disabled */
+.crt::after {
+  display: none;
+}
+
+.crt-flicker {
+  animation: none;
+}
+
+/* Customized keyframes and animation declarations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+  20%, 40%, 60%, 80% { transform: translateX(8px); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+body {
+  background-color: #080808;
+  color: #ebdcb9;
+}
+
+/* 2D Grid map styles */
+.tile-floor {
+  background-color: #1a1613;
+  background-image: radial-gradient(#261f1a 10%, transparent 11%),
+                    radial-gradient(#261f1a 10%, transparent 11%);
+  background-size: 8px 8px;
+  background-position: 0 0, 4px 4px;
+}
+
+.tile-wall {
+  background-color: #2b1c13;
+  border: 2px solid #1a110a;
+  box-shadow: inset -2px -2px 0 0 #0f0b08, inset 2px 2px 0 0 #4d3222;
+}
+
+.tile-door {
+  background-color: #4a1510;
+  border: 2px solid #000;
+  box-shadow: inset 0 0 10px #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.tile-door-open {
+  background-color: #104a1b;
+  border-color: #00ff00;
+  box-shadow: 0 0 10px #00ff00;
+}
+
+.tile-puzzle {
+  background-color: #1b2f20;
+  border: 2px solid #ffaa00;
+  box-shadow: 0 0 8px rgba(255, 170, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tile-puzzle-solved {
+  border-color: #00ff00;
+  background-color: #122416;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   GLOBAL FONT SIZE OVERRIDES (UPSCALING TINY FONT SIZE CLASSES)
+   ───────────────────────────────────────────────────────────── */
+
+/* Convert 5px - 9px fonts to a highly legible 13px */
+[class*="text-[5px]"], [class*="text-[6px]"], [class*="text-[7px]"], [class*="text-[8px]"], [class*="text-[9px]"] {
+  font-size: 13px !important;
+}
+
+/* Convert 10px - 11px and text-xs fonts to a clear 14px */
+[class*="text-[10px]"], [class*="text-[11px]"], [class*="text-xs"] {
+  font-size: 14px !important;
+}
+
+/* Convert 12px - 13px and text-sm fonts to a clear 15px */
+[class*="text-[12px]"], [class*="text-[13px]"], [class*="text-sm"] {
+  font-size: 15px !important;
+}
+
+/* Convert 14px fonts to 16px */
+[class*="text-[14px]"] {
+  font-size: 16px !important;
+}
+
+/* Ensure form controls, labels, and buttons are consistently readable (minimum 14px) */
+input, select, textarea, label {
+  font-size: 14px !important;
+}
+
+/* Let the specialized button styles stay proportionate */
+.pixel-btn, button {
+  font-size: 14px !important;
+}
+
+
